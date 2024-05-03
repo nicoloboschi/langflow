@@ -70,7 +70,7 @@ langchain-anthropic = "^0.1.6"
 zep-python = { version = "^2.0.0rc5", allow-prereleases = true }
 
 [tool.poetry.group.test.dependencies]
-ragstack-ai-langflow = { path = "./src/backend/base", develop = true }
+ragstack-ai-langflow-base = { path = "./src/backend/base", develop = true }
 
 
 [tool.poetry.group.dev.dependencies]
