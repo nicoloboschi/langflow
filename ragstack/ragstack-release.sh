@@ -24,9 +24,9 @@ else
     exit 1
 fi
 
-remote_name=$(git remote -v  | grep push | grep datastax/langflow.git | awk '{print $1}' | head -n 1)
+remote_name=$(git remote -v  | grep push | grep datastax/ragstack-ai-langflow.git | awk '{print $1}' | head -n 1)
 if [ -z "$remote_name" ]; then
-    echo "Remote datastax/langflow.git not found"
+    echo "Remote datastax/ragstack-ai-langflow.git not found"
     exit 1
 fi
 echo "Identified remote $remote_name"
