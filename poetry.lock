@@ -167,13 +167,12 @@ files = [
 
 [[package]]
 name = "anthropic"
-version = "0.27.0"
+version = "0.28.0"
 description = "The official Python library for the anthropic API"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "anthropic-0.27.0-py3-none-any.whl", hash = "sha256:c6e73035e910b3ff3f52853b15b42c5e99bf649ce0b510bd491a2c4befeda694"},
-    {file = "anthropic-0.27.0.tar.gz", hash = "sha256:9a86671376d376c4e75981a5dc2dc9c81f8e277b38e9240b3c0a7f574b4cc2a6"},
+    {file = "anthropic-0.28.0-py3-none-any.whl", hash = "sha256:2b620b21aee3d20c5d8005483c34df239d53ae895687113b26b8a36892a7e20f"},
 ]
 
 [package.dependencies]
@@ -7730,7 +7729,7 @@ nvidia = ["langchain-nvidia-ai-endpoints (==0.0.9)"]
 
 [[package]]
 name = "ragstack-ai-langflow-base"
-version = "0.0.4"
+version = "0.0.5"
 description = "RAGStack Langflow base"
 optional = false
 python-versions = ">=3.10,<3.12"
@@ -10541,4 +10540,4 @@ local = ["ctransformers", "llama-cpp-python", "sentence-transformers"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "1fd6e18f6442ce78c91b5e9bf55a3be44a37d2e3fdaa2a8f77f5ef24c7d3fedd"
+content-hash = "b75870bae5c5ec18e0cdc36b76045682f0cb829a598021b4352303e4bacb82b8"
