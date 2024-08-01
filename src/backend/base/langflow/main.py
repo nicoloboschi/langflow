@@ -1,3 +1,4 @@
+import linecache
 import os
 import asyncio
 import warnings
@@ -74,6 +75,44 @@ class JavaScriptMIMETypeMiddleware(BaseHTTPMiddleware):
         return response
 
 
+async def check_memory_usage():
+    import tracemalloc
+    import resource
+    # soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    #
+    # # Print current limits for debugging
+    # print(f"Current soft limit: {soft}, hard limit: {hard}")
+    # memory_limit = 32 * 1024 * 1024  # 512 MB
+    # new_soft_limit = min(memory_limit, soft)
+    # new_hard_limit = min(memory_limit, hard)
+    # print(f"new soft limit: {new_soft_limit}, hard limit: {hard}")
+    # resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+    first_snapshot = tracemalloc.take_snapshot()
+    import gc
+    while True:
+        usage, peak = tracemalloc.get_traced_memory()
+        print("Current memory usage is ", usage / 10 ** 6, "MB, peak was ", peak / 10 ** 6, "MB")
+        snapshot = tracemalloc.take_snapshot()
+        snapshot.compare_to(first_snapshot, 'lineno')
+        top_stats = snapshot.statistics('lineno')
+
+        print("[ Top 10 ]")
+        for stat in top_stats[:10]:
+            print(stat)
+            for line in stat.traceback.format():
+                print(line)
+
+        print("\n[ <string> allocations ]")
+        for stat in top_stats:
+            if '<string>' in stat.traceback.format():
+                print(stat)
+
+#        linecache.clearcache()
+        gc.collect()
+
+        await asyncio.sleep(10)
+
+
 def get_lifespan(fix_migration=False, socketio_server=None, version=None):
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -92,6 +131,12 @@ def get_lifespan(fix_migration=False, socketio_server=None, version=None):
             await create_or_update_starter_projects(task)
             asyncio.create_task(get_telemetry_service().start())
             load_flows_from_directory()
+            # timer that checks memory usage
+            import tracemalloc
+
+            tracemalloc.start()
+            asyncio.create_task(check_memory_usage())
+
             yield
         except Exception as exc:
             if "langflow migration --fix" not in str(exc):

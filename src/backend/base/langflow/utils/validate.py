@@ -1,6 +1,7 @@
 import ast
 import contextlib
 import importlib
+import linecache
 from types import FunctionType
 from typing import Dict, List, Optional, Union
 
@@ -253,6 +254,7 @@ def build_class_constructor(compiled_class, exec_globals, class_name):
     """
 
     exec(compiled_class, exec_globals, locals())
+    #linecache.clearcache()
     exec_globals[class_name] = locals()[class_name]
 
     # Return a function that imports necessary modules and creates an instance of the target class

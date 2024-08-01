@@ -373,6 +373,7 @@ class AsyncInMemoryCache(AsyncBaseCacheService, Generic[AsyncLockType]):
     async def _set(self, key, value):
         if self.max_size and len(self.cache) >= self.max_size:
             self.cache.popitem(last=False)
+        print("set cache " + str(key) + ", current size" + str(len(self.cache)))
         self.cache[key] = {"value": value, "time": time.time()}
         self.cache.move_to_end(key)
 
