@@ -6,6 +6,7 @@ from gunicorn import glogging  # type: ignore
 from gunicorn.app.base import BaseApplication  # type: ignore
 from uvicorn.workers import UvicornWorker
 
+from langflow.main import check_memory_usage
 from langflow.utils.logger import InterceptHandler  # type: ignore
 
 
@@ -44,11 +45,15 @@ class Logger(glogging.Logger):
 
 class LangflowApplication(BaseApplication):
     def __init__(self, app, options=None):
+        import tracemalloc
+        tracemalloc.start()
         self.options = options or {}
 
         self.options["worker_class"] = "langflow.server.LangflowUvicornWorker"
         self.options["logger_class"] = Logger
         self.application = app
+
+        asyncio.create_task(check_memory_usage("initapp", loop=True))
         super().__init__()
 
     def load_config(self):

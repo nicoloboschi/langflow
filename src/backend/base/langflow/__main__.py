@@ -20,7 +20,7 @@ from rich.panel import Panel
 from rich.table import Table
 from sqlmodel import select
 
-from langflow.main import setup_app
+from langflow.main import setup_app, check_memory_usage
 from langflow.services.database.models.folder.utils import create_default_folder_if_it_doesnt_exist
 from langflow.services.database.utils import session_getter
 from langflow.services.deps import get_db_service, get_settings_service, session_scope
@@ -124,6 +124,8 @@ def run(
     """
     Run Langflow.
     """
+    import tracemalloc
+    tracemalloc.start()
 
     configure(log_level=log_level, log_file=log_file)
     set_var_for_macos_issue()
@@ -167,6 +169,7 @@ def run(
             process = run_on_windows(host, port, log_level, options, app)
         else:
             # Run using gunicorn on Linux
+            check_memory_usage("OUTSIDE")
             process = run_on_mac_or_linux(host, port, log_level, options, app)
         if open_browser and not backend_only:
             click.launch(f"http://{host}:{port}")

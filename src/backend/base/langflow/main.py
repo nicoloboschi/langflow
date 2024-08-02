@@ -1,4 +1,6 @@
 import linecache
+# import tracemalloc
+# tracemalloc.start()
 import os
 import asyncio
 import warnings
@@ -75,8 +77,15 @@ class JavaScriptMIMETypeMiddleware(BaseHTTPMiddleware):
         return response
 
 
-async def check_memory_usage():
+def check_memory_usage(name: str, loop=False):
     import tracemalloc
+    #tracemalloc.start()
+    import os
+    full_name = name + " -> " + str(os.getpid())
+    banner = "==============================================Start: " + full_name
+    def logge(sss):
+        logger.info(sss)
+        print(sss)
     import resource
     # soft, hard = resource.getrlimit(resource.RLIMIT_AS)
     #
@@ -91,51 +100,61 @@ async def check_memory_usage():
     import gc
     while True:
         usage, peak = tracemalloc.get_traced_memory()
-        print("Current memory usage is ", usage / 10 ** 6, "MB, peak was ", peak / 10 ** 6, "MB")
+        infp = full_name + " memory " + str(usage / 10 ** 6) + "MB, peak was " + str(peak / 10 ** 6) + "MB"
+        logge(infp)
+
         snapshot = tracemalloc.take_snapshot()
         snapshot.compare_to(first_snapshot, 'lineno')
         top_stats = snapshot.statistics('lineno')
 
-        print("[ Top 10 ]")
-        for stat in top_stats[:10]:
-            print(stat)
-            for line in stat.traceback.format():
-                print(line)
-
-        print("\n[ <string> allocations ]")
-        for stat in top_stats:
-            if '<string>' in stat.traceback.format():
-                print(stat)
+        # logge("[ Top 10 ]")
+        # for stat in top_stats[:10]:
+        #     logge(stat)
+        #     for line in stat.traceback.format():
+        #         logge(line)
+        #
+        # logge("\n[ <string> allocations ]")
+        # for stat in top_stats:
+        #     if '<string>' in stat.traceback.format():
+        #         logge(stat)
 
 #        linecache.clearcache()
-        gc.collect()
+        #gc.collect()
+        if not loop:
+            break
 
-        await asyncio.sleep(10)
+        import time
+        time.sleep(2)
 
 
 def get_lifespan(fix_migration=False, socketio_server=None, version=None):
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         nest_asyncio.apply()
+        import tracemalloc
+        tracemalloc.start()
+        check_memory_usage("before lifespan")
+        rprint("==============================================Checking memory usage")
         # Startup message
         if version:
-            rprint(f"[bold green]Starting Langflow v{version}...[/bold green]")
+            rprint(f"[bold green]Starting Langflow!!!!!!!! v{version}...[/bold green]")
         else:
             rprint("[bold green]Starting Langflow...[/bold green]")
         try:
             initialize_services(fix_migration=fix_migration, socketio_server=socketio_server)
+            check_memory_usage("step1")
             setup_llm_caching()
+            check_memory_usage("step1")
             LangfuseInstance.update()
+            check_memory_usage("step2")
             initialize_super_user_if_needed()
+            check_memory_usage("step3")
             task = asyncio.create_task(get_and_cache_all_types_dict(get_settings_service(), get_cache_service()))
             await create_or_update_starter_projects(task)
             asyncio.create_task(get_telemetry_service().start())
             load_flows_from_directory()
             # timer that checks memory usage
-            import tracemalloc
 
-            tracemalloc.start()
-            asyncio.create_task(check_memory_usage())
 
             yield
         except Exception as exc:
@@ -159,6 +178,8 @@ def create_app():
         __version__ = version("langflow-base")
 
     configure()
+    import tracemalloc
+    tracemalloc.start()
     lifespan = get_lifespan(version=__version__)
     app = FastAPI(lifespan=lifespan, title="Langflow", version=__version__)
     setup_sentry(app)
@@ -288,6 +309,7 @@ if __name__ == "__main__":
     from langflow.__main__ import get_number_of_workers
 
     configure()
+    raise RuntimeError("This script is not meant to be run directly. Use the CLI instead.")
     uvicorn.run(
         "langflow.main:create_app",
         host="127.0.0.1",
